@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Этапы клиентского пути</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --teal:#42A1A5; --teal-dark:#348489; --header-bg:#F2F2F2; --border:#F2F2F2; --outer-border:#cfcfcf; --text:#1f2528; --page-bg:#fff; --white:#fff; }
+    * { box-sizing:border-box; }
+    body { margin:0; padding:40px 24px; background:var(--page-bg); color:var(--text); font-family:Inter, Arial, sans-serif; font-size:18px; line-height:1.4; }
+    .table-wrapper { max-width:1600px; margin:0 auto; overflow:hidden; background:var(--white); border:1px solid var(--outer-border); }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    th, td { border:1px solid var(--border); vertical-align:middle; text-align:left; }
+    th { padding:14px 16px; background:var(--header-bg); font-size:18px; font-weight:700; }
+    th:nth-child(1){width:19.4%} th:nth-child(2){width:19.6%} th:nth-child(3){width:20%} th:nth-child(4){width:25%} th:nth-child(5){width:16%}
+    .stage-cell { padding:0; background:var(--teal); vertical-align:middle; }
+    .stage-button { display:flex; align-items:center; width:100%; min-height:100%; padding:16px 12px; border:0; background:var(--teal); color:var(--white); font:inherit; font-weight:700; text-align:left; white-space:nowrap; cursor:pointer; transition:background-color .25s ease; }
+    .stage-button:hover, .stage-button:focus-visible { background:var(--teal-dark); outline:none; }
+    .stage-button:focus-visible { box-shadow:inset 0 0 0 3px rgba(255,255,255,.75); }
+    .details-cell { padding:0; background:var(--white); }
+    .details-content { max-height:0; padding:0 16px; overflow:hidden; opacity:0; transform:translateY(-6px); transition:max-height .3s ease, padding .3s ease, opacity .2s ease, transform .3s ease; }
+    tr.is-open .details-content { max-height:350px; padding:14px 16px; opacity:1; transform:translateY(0); }
+    p, ul { margin:0; } ul { padding-left:20px; } li::marker { color:var(--teal); }
+    @media (max-width:900px) {
+      body { padding:20px 16px; } .table-wrapper { overflow:visible; border:0; background:transparent; }
+      table, thead, tbody, tr, th, td { display:block; width:100%; } thead { display:none; } tbody { display:grid; gap:16px; }
+      tr { overflow:hidden; background:var(--white); border:1px solid var(--outer-border); } .stage-cell { border:0; }
+      .stage-button { min-height:64px; padding:18px 16px; } .details-cell { display:none; border:0; border-top:1px solid var(--border); }
+      tr.is-open .details-cell { display:block; } .details-content { max-height:none; padding:0; opacity:0; transform:translateY(-6px); }
+      tr.is-open .details-content { max-height:none; padding:16px; opacity:1; transform:translateY(0); }
+      .details-cell::before { display:block; padding:12px 16px; background:var(--header-bg); color:var(--text); font-size:20px; font-weight:700; }
+      .value-cell::before { content:"Ценность/ожидание"; } .pain-cell::before { content:"Боль/риск"; } .metric-cell::before { content:"Ранний сигнал (метрика)"; } .owner-cell::before { content:"Ответственный"; }
+    }
+  </style>
+</head>
+<body>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Этап</th><th>Ценность/ожидание</th><th>Боль/риск</th><th>Ранний сигнал (метрика)</th><th>Ответственный</th></tr></thead>
+      <tbody id="stages"></tbody>
+    </table>
+  </div>
+  <script>
+    const stages = [
+      ["1. Клиент закреплён", "Клиент быстро попадает<br>в работу", ["Клиент «завис»", "Дубль", "Неверный контакт"], ["Время до первого контакта", "Доля клиентов без контакта 24 часа"], "Руководитель продаж<br>+ CRM‑админ"],
+      ["2. Подготовка менеджера", "Менеджер быстро понимает контекст клиента и тему контакта", ["Долго изучает карточку", "Не понимает, с чего начать"], ["Время подготовки", "Доля контактов с заполненной темой/триггером"], "Менеджер<br>+ CRM‑админ"],
+      ["3. Первый контакт", "Сообщение персональное<br>и по делу", ["Игнор", "Не дозвонились"], ["Доля клиентов, вышедших на связь", "Доля результативных контактов"], "Менеджер"],
+      ["4. Доверие и релевантность", "Клиент понимает пользу<br>и «почему это ему»", ["Выглядит как спам", "Нет доверия"], ["Доля открытий/просмотров", "Доля ответов"], "Менеджер"],
+      ["5. Решение о встрече", "Клиенту легко согласиться (понятный следующий шаг)", ["«Подумаю»", "Непонятно, как выбрать время"], ["Конверсия контакт → встреча", "Время до согласия"], "Менеджер"],
+      ["6. Подтверждение встречи", "Встреча не срывается из-за организационных причин", ["Не подтвердили", "Переносы"], ["Доля подтверждённых встреч", "Доля неявок"], "Менеджер<br>+ CRM‑админ"],
+      ["7. Встреча состоялась", "Есть следующий шаг<br>(КП/пилот)", ["Разговор «впустую»", "Нет договорённостей"], ["Доля встреч с зафиксированным next step"], "Менеджер<br>+ руководитель"]
+    ];
+    const list = items => `<ul>${items.map(item => `<li>${item}</li>`).join("")}</ul>`;
+    document.getElementById("stages").innerHTML = stages.map(([stage, value, pain, metric, owner]) => `
+      <tr>
+        <td class="stage-cell"><button class="stage-button" type="button" aria-expanded="false"><span>${stage}</span></button></td>
+        <td class="details-cell value-cell"><div class="details-content"><p>${value}</p></div></td>
+        <td class="details-cell pain-cell"><div class="details-content">${list(pain)}</div></td>
+        <td class="details-cell metric-cell"><div class="details-content">${list(metric)}</div></td>
+        <td class="details-cell owner-cell"><div class="details-content"><p>${owner}</p></div></td>
+      </tr>`).join("");
+    document.querySelectorAll(".stage-button").forEach(button => button.addEventListener("click", () => {
+      const row = button.closest("tr");
+      const isOpen = row.classList.toggle("is-open");
+      button.setAttribute("aria-expanded", String(isOpen));
+    }));
+  </script>
+</body>
+</html>
